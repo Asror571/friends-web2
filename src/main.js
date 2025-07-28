@@ -25,9 +25,19 @@ map.on( "load", async () => {
 
 	const server = io( "http://localhost:3000" ) // "https://friends-socket-server.onrender.com"
 
-	server.on( "new_user", user => {
-		console.log( user )
-		addNewUser( user, map )
+	server.on( "new_user", geoJSON => {
+
+		if ( geoJSON.type === "Feature" ) {
+
+			addNewUser( geoJSON, map )
+		}
+		else if ( geoJSON.type === "FeatureCollection" ) {
+
+			for ( const geoJSONFeature of geoJSON.features ) {
+
+				addNewUser( geoJSONFeature, map )
+			}
+		}
 	} )
 
 	joinButton.onclick = () => {
