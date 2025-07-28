@@ -14,7 +14,7 @@ const map = new mapboxgl.Map( {
 	zoom: 9,
 	center: [ 69.2753, 41.3126 ],
 	hash: true,
-	minZoom: 5,
+	minZoom: 1,
 	maxZoom: 18,
 	projection: "mercator",
 } )
@@ -57,10 +57,15 @@ map.on( "load", async () => {
 
 		navigator.geolocation.getCurrentPosition( ( { coords } ) => {
 
+			const coordinates = [
+				coords.longitude + Math.random() * Math.random(),
+				coords.latitude + Math.random() * Math.random(),
+			]
+
 			server.emit( "new_user", {
 				username: username,
 				avatar: avatar,
-				coordinates: [ coords.longitude, coords.latitude ],
+				coordinates: coordinates,
 			} )
 		} )
 	}
