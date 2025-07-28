@@ -1,6 +1,7 @@
 import "mapbox-gl/dist/mapbox-gl.css"
 import "./main.css"
 import mapboxgl from "mapbox-gl"
+import * as turf from "@turf/turf"
 import { io } from "socket.io-client"
 
 mapboxgl.accessToken = "pk.eyJ1IjoibmFqaW1vdiIsImEiOiJjbWRmazhzdG0wZHVzMmlzOGdrNHFreWV6In0.ENVcoFkxKIqNeCEax2JoFg"
@@ -37,6 +38,14 @@ map.on( "load", async () => {
 
 				addNewUser( geoJSONFeature, map )
 			}
+
+			const bbox = turf.bbox( geoJSON )
+
+			map.fitBounds( bbox, {
+				padding: 200, // pixels
+				duration: 1_000, // ms
+				essential: true, // reduces motion for accessibility
+			} )
 		}
 	} )
 

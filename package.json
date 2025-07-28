@@ -13,6 +13,7 @@
 		"vite-plugin-eslint": "^1.8.1"
 	},
 	"dependencies": {
+		"@turf/turf": "^7.2.0",
 		"mapbox-gl": "^3.13.0",
 		"socket.io-client": "^4.8.1"
 	}
