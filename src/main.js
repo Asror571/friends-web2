@@ -63,8 +63,8 @@ map.on( "load", async () => {
 			navigator.geolocation.getCurrentPosition( async ( { coords } ) => {
 
 				const coordinates = [
-					coords.longitude + Math.random() * Math.random(),
-					coords.latitude + Math.random() * Math.random(),
+					coords.longitude,
+					coords.latitude,
 				]
 
 				server.emit( "new_user", {
