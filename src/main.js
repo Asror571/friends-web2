@@ -24,7 +24,7 @@ map.on( "load", async () => {
 
 	console.clear()
 
-	const server = io( "http://localhost:3000" ) // "https://friends-socket-server.onrender.com"
+	const server = io( "https://friends-socket-server.onrender.com" )
 
 	server.on( "new_user", geoJSON => {
 
