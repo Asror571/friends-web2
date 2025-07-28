@@ -4,6 +4,41 @@
 	box-sizing: border-box;
 }
 
+#app {
+	width: 100vw;
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+}
+
+#map {
+	position: absolute;
+	width: 80vw;
+	height: 100vh;
+	top: 0;
+	left: 0;
+	position: absolute;
+}
+
+#sidebar {
+	width: 20vw;
+	min-height: 100vh;
+	border-left: 2pt solid black;
+	position: absolute;
+	top: 0;
+	right: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.joinButton {
+	font-size: 1.25rem;
+	padding: 0.5rem 2rem;
+}
+
 .user {
 	width: 100px;
 	height: 100px;

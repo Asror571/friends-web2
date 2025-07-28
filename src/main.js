@@ -5,6 +5,8 @@ import { io } from "socket.io-client"
 
 mapboxgl.accessToken = "pk.eyJ1IjoibmFqaW1vdiIsImEiOiJjbWRmazhzdG0wZHVzMmlzOGdrNHFreWV6In0.ENVcoFkxKIqNeCEax2JoFg"
 
+const joinButton = document.querySelector( ".joinButton" )
+
 const map = new mapboxgl.Map( {
 	container: "map",
 	attributionControl: false,
@@ -21,34 +23,37 @@ map.on( "load", async () => {
 
 	console.clear()
 
-	const username = prompt( "Type username:" )
-	let avatar = prompt( "Type image (avatar/profile) address:" )
-
-	try {
-
-		new URL( avatar )
-	}
-	catch( err ) {
-
-		avatar = "https://www.kindpng.com/picc/m/22-223863_no-avatar-png-circle-transparent-png.png"
-		console.log( err )
-	}
-
-	const server = io( "https://friends-socket-server.onrender.com" )
+	const server = io( "http://localhost:3000" ) // "https://friends-socket-server.onrender.com"
 
 	server.on( "new_user", user => {
 		console.log( user )
 		addNewUser( user, map )
 	} )
 
-	navigator.geolocation.getCurrentPosition( ( { coords } ) => {
+	joinButton.onclick = () => {
 
-		server.emit( "new_user", {
-			username: username,
-			avatar: avatar,
-			coordinates: [ coords.longitude, coords.latitude ],
+		const username = prompt( "Type username:" )
+		let avatar = prompt( "Type image (avatar/profile) address:" )
+
+		try {
+
+			new URL( avatar )
+		}
+		catch( err ) {
+
+			avatar = "https://www.kindpng.com/picc/m/22-223863_no-avatar-png-circle-transparent-png.png"
+			// console.log( err )
+		}
+
+		navigator.geolocation.getCurrentPosition( ( { coords } ) => {
+
+			server.emit( "new_user", {
+				username: username,
+				avatar: avatar,
+				coordinates: [ coords.longitude, coords.latitude ],
+			} )
 		} )
-	} )
+	}
 } )
 
 function addNewUser( geoJSONFeature, map ) {
