@@ -24,7 +24,8 @@ map.on( "load", async () => {
 
 	console.clear()
 
-	const server = io( "https://friends-socket-server.onrender.com" )
+	// const server = io( "https://friends-socket-server.onrender.com" )
+	const server = io( "http://localhost:3000" )
 
 	server.on( "new_user", geoJSON => {
 
@@ -52,39 +53,44 @@ map.on( "load", async () => {
 	joinButton.onclick = () => {
 
 		const username = prompt( "Type username:" )
-		let avatar = prompt( "Type image (avatar/profile) address:" )
 
-		try {
+		const inputElement = document.createElement( "input" )
+		inputElement.setAttribute( "type", "file" )
+		inputElement.onchange = async e => {
 
-			new URL( avatar )
-		}
-		catch( err ) {
+			const file = inputElement.files[ 0 ]
 
-			avatar = "https://www.kindpng.com/picc/m/22-223863_no-avatar-png-circle-transparent-png.png"
-			// console.log( err )
-		}
+			navigator.geolocation.getCurrentPosition( async ( { coords } ) => {
 
-		navigator.geolocation.getCurrentPosition( ( { coords } ) => {
+				const coordinates = [
+					coords.longitude + Math.random() * Math.random(),
+					coords.latitude + Math.random() * Math.random(),
+				]
 
-			const coordinates = [
-				coords.longitude + Math.random() * Math.random(),
-				coords.latitude + Math.random() * Math.random(),
-			]
-
-			server.emit( "new_user", {
-				username: username,
-				avatar: avatar,
-				coordinates: coordinates,
+				server.emit( "new_user", {
+					username: username,
+					file: {
+						type: file.type,
+						arrayBuffer: await file.arrayBuffer(),
+					},
+					coordinates: coordinates,
+				} )
 			} )
-		} )
+		}
+		inputElement.click()
 	}
 } )
 
 function addNewUser( geoJSONFeature, map ) {
 
+	const { avatar } = geoJSONFeature.properties
+
+	const blob = new Blob( [ avatar.arrayBuffer ], { type: avatar.type } )
+	const avatarURL = URL.createObjectURL( blob )
+
 	const el = document.createElement( "div" )
 	el.className = "user"
-	el.style.backgroundImage = `url(${ geoJSONFeature.properties.avatar })`
+	el.style.backgroundImage = `url(${ avatarURL })`
 
 	el.onclick = () => {
 
@@ -94,4 +100,6 @@ function addNewUser( geoJSONFeature, map ) {
 	const marker = new mapboxgl.Marker( el )
 	marker.setLngLat( geoJSONFeature.geometry.coordinates )
 	marker.addTo( map )
+
+	// URL.revokeObjectURL( avatarURL )
 }
