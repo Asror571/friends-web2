@@ -3,6 +3,7 @@ import "./main.css"
 import mapboxgl from "mapbox-gl"
 import * as turf from "@turf/turf"
 import { io } from "socket.io-client"
+import moment from "moment"
 
 mapboxgl.accessToken = "pk.eyJ1IjoibmFqaW1vdiIsImEiOiJjbWRmazhzdG0wZHVzMmlzOGdrNHFreWV6In0.ENVcoFkxKIqNeCEax2JoFg"
 
@@ -22,6 +23,7 @@ const closeUserInfoBtn = document.querySelector( "#closeUserInfoBtn" )
 const userInfoUsername = document.querySelector( "#userInfoUsername" )
 const userInfoLocation = document.querySelector( "#userInfoLocation" )
 const userAvatarLarge = document.querySelector( "#userAvatarLarge" )
+const userInfoJoined = document.querySelector( "#userInfoJoined" )
 
 const map = new mapboxgl.Map( {
 	container: "map",
@@ -187,7 +189,7 @@ function addNewUser( geoJSONFeature, map ) {
 }
 
 function showUserInfo( geoJSONFeature ) {
-	const { username, avatar } = geoJSONFeature.properties
+	const { username, avatar, joinedAt } = geoJSONFeature.properties
 	const coordinates = geoJSONFeature.geometry.coordinates
 
 	// Set user info
@@ -198,6 +200,9 @@ function showUserInfo( geoJSONFeature ) {
 	const blob = new Blob( [ avatar.arrayBuffer ], { type: avatar.type } )
 	const avatarURL = URL.createObjectURL( blob )
 	userAvatarLarge.style.backgroundImage = `url(${ avatarURL })`
+
+	// Set joined info
+	userInfoJoined.textContent = moment( joinedAt ).fromNow()
 
 	// Show modal
 	userInfoModal.style.display = "block"
