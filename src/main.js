@@ -20,6 +20,7 @@ const filePlaceholder = document.querySelector( ".file-placeholder" )
 const userInfoModal = document.querySelector( "#userInfoModal" )
 const closeUserInfo = document.querySelector( "#closeUserInfo" )
 const closeUserInfoBtn = document.querySelector( "#closeUserInfoBtn" )
+const showOnMapBtn = document.querySelector( "#showOnMapBtn" )
 const userInfoUsername = document.querySelector( "#userInfoUsername" )
 const userInfoLocation = document.querySelector( "#userInfoLocation" )
 const userAvatarLarge = document.querySelector( "#userAvatarLarge" )
@@ -34,6 +35,8 @@ const sidebarTitle = document.querySelector( "#sidebarTitle" )
 const userList = document.querySelector( "#userList" )
 const emptyState = document.querySelector( "#emptyState" )
 const mapElement = document.querySelector( "#map" )
+
+let currentUserData = null // Store current user data for Show on Map
 
 const map = new mapboxgl.Map( {
 	container: "map",
@@ -148,6 +151,13 @@ map.on( "load", async () => {
 
 	closeUserInfoBtn.onclick = () => {
 		userInfoModal.style.display = "none"
+	}
+
+	showOnMapBtn.onclick = () => {
+		if ( currentUserData ) {
+			showUserOnMap( currentUserData )
+			userInfoModal.style.display = "none"
+		}
 	}
 
 	// Notification functionality
@@ -273,6 +283,18 @@ map.on( "load", async () => {
 		sidebarTitle.textContent = `Online Users (${count})`
 	}
 
+	function showUserOnMap( geoJSONFeature ) {
+		const coordinates = geoJSONFeature.geometry.coordinates
+		
+		// Center map on user location with zoom
+		map.flyTo( {
+			center: coordinates,
+			zoom: 15,
+			duration: 1500,
+			essential: true
+		} )
+	}
+
 	// Add window resize listener
 	window.addEventListener( "resize", () => {
 		map.resize()
@@ -333,6 +355,9 @@ function addNewUser( geoJSONFeature, map ) {
 function showUserInfo( geoJSONFeature ) {
 	const { username, avatar, joinedAt } = geoJSONFeature.properties
 	const coordinates = geoJSONFeature.geometry.coordinates
+
+	// Store current user data for Show on Map button
+	currentUserData = geoJSONFeature
 
 	// Set user info
 	userInfoUsername.textContent = username
