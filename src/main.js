@@ -16,6 +16,13 @@ const avatarInput = document.querySelector( "#avatarInput" )
 const avatarPreview = document.querySelector( "#avatarPreview" )
 const filePlaceholder = document.querySelector( ".file-placeholder" )
 
+const userInfoModal = document.querySelector( "#userInfoModal" )
+const closeUserInfo = document.querySelector( "#closeUserInfo" )
+const closeUserInfoBtn = document.querySelector( "#closeUserInfoBtn" )
+const userInfoUsername = document.querySelector( "#userInfoUsername" )
+const userInfoLocation = document.querySelector( "#userInfoLocation" )
+const userAvatarLarge = document.querySelector( "#userAvatarLarge" )
+
 const map = new mapboxgl.Map( {
 	container: "map",
 	attributionControl: false,
@@ -74,11 +81,23 @@ map.on( "load", async () => {
 		resetModal()
 	}
 
+	// User Info Modal functionality
+	closeUserInfo.onclick = () => {
+		userInfoModal.style.display = "none"
+	}
+
+	closeUserInfoBtn.onclick = () => {
+		userInfoModal.style.display = "none"
+	}
+
 	// Close modal when clicking outside
 	window.onclick = ( event ) => {
 		if ( event.target === joinModal ) {
 			joinModal.style.display = "none"
 			resetModal()
+		}
+		if ( event.target === userInfoModal ) {
+			userInfoModal.style.display = "none"
 		}
 	}
 
@@ -157,8 +176,7 @@ function addNewUser( geoJSONFeature, map ) {
 	el.style.backgroundImage = `url(${ avatarURL })`
 
 	el.onclick = () => {
-
-		alert( geoJSONFeature.properties.username )
+		showUserInfo( geoJSONFeature )
 	}
 
 	const marker = new mapboxgl.Marker( el )
@@ -166,4 +184,21 @@ function addNewUser( geoJSONFeature, map ) {
 	marker.addTo( map )
 
 	// URL.revokeObjectURL( avatarURL )
+}
+
+function showUserInfo( geoJSONFeature ) {
+	const { username, avatar } = geoJSONFeature.properties
+	const coordinates = geoJSONFeature.geometry.coordinates
+
+	// Set user info
+	userInfoUsername.textContent = username
+	userInfoLocation.textContent = `${coordinates[1].toFixed(4)}, ${coordinates[0].toFixed(4)}`
+
+	// Set avatar
+	const blob = new Blob( [ avatar.arrayBuffer ], { type: avatar.type } )
+	const avatarURL = URL.createObjectURL( blob )
+	userAvatarLarge.style.backgroundImage = `url(${ avatarURL })`
+
+	// Show modal
+	userInfoModal.style.display = "block"
 }

@@ -44,6 +44,38 @@
 			</div>
 		</div>
 
+		<!-- User Info Modal -->
+		<div id="userInfoModal" class="modal">
+			<div class="modal-content user-info-modal">
+				<div class="modal-header">
+					<h2 id="userInfoTitle">User Information</h2>
+					<span class="close" id="closeUserInfo">&times;</span>
+				</div>
+				<div class="modal-body">
+					<div class="user-info-content">
+						<div class="user-avatar-large" id="userAvatarLarge"></div>
+						<div class="user-details">
+							<div class="user-detail-item">
+								<label>Username:</label>
+								<span id="userInfoUsername"></span>
+							</div>
+							<div class="user-detail-item">
+								<label>Location:</label>
+								<span id="userInfoLocation"></span>
+							</div>
+							<div class="user-detail-item">
+								<label>Joined:</label>
+								<span id="userInfoJoined">Just now</span>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" id="closeUserInfoBtn" class="btn-secondary">Close</button>
+				</div>
+			</div>
+		</div>
+
 		<script type="module" src="/src/main.js"></script>
 	</body>
 </html>
