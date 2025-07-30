@@ -30,6 +30,7 @@ const notificationText = document.querySelector( "#notificationText" )
 const closeNotification = document.querySelector( "#closeNotification" )
 
 const sidebar = document.querySelector( "#sidebar" )
+const sidebarTitle = document.querySelector( "#sidebarTitle" )
 const userList = document.querySelector( "#userList" )
 const emptyState = document.querySelector( "#emptyState" )
 const mapElement = document.querySelector( "#map" )
@@ -65,6 +66,7 @@ map.on( "load", async () => {
 		}
 		else {
 			hideEmptyState()
+			updateSidebarTitle( count )
 			
 			// Add all existing users to map and sidebar
 			for ( const geoJSONFeature of usersGeoJSONCollection.features ) {
@@ -93,6 +95,8 @@ map.on( "load", async () => {
 			if ( onlineUsers === 1 ) {
 				hideEmptyState()
 			}
+			
+			updateSidebarTitle( onlineUsers )
 		}
 		else if ( geoJSON.type === "FeatureCollection" ) {
 			// This means we just joined and server sent us all users (including ourselves)
@@ -101,6 +105,7 @@ map.on( "load", async () => {
 			// Clear existing user list to avoid duplicates
 			clearUserList()
 			hideEmptyState()
+			updateSidebarTitle( onlineUsers )
 
 			for ( const geoJSONFeature of geoJSON.features ) {
 				addNewUser( geoJSONFeature, map )
@@ -257,10 +262,15 @@ map.on( "load", async () => {
 	// Empty state functions
 	function showEmptyState() {
 		emptyState.style.display = "flex"
+		updateSidebarTitle( 0 )
 	}
 
 	function hideEmptyState() {
 		emptyState.style.display = "none"
+	}
+
+	function updateSidebarTitle( count ) {
+		sidebarTitle.textContent = `Online Users (${count})`
 	}
 
 	// Add window resize listener
