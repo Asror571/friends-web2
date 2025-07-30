@@ -13,6 +13,7 @@ const closeModal = document.querySelector( ".close" )
 const cancelJoin = document.querySelector( "#cancelJoin" )
 const confirmJoin = document.querySelector( "#confirmJoin" )
 const usernameInput = document.querySelector( "#usernameInput" )
+const usernameError = document.querySelector( "#usernameError" )
 const avatarInput = document.querySelector( "#avatarInput" )
 const avatarPreview = document.querySelector( "#avatarPreview" )
 const filePlaceholder = document.querySelector( ".file-placeholder" )
@@ -56,8 +57,8 @@ map.on( "load", async () => {
 
 	console.clear()
 
-	// const server = io( "https://friends-socket-server.onrender.com" )
-	const server = io( "http://localhost:3000" )
+	const server = io( "https://friends-socket-server.onrender.com" )
+	// const server = io( "http://localhost:3000" )
 
 	let onlineUsers = 0
 	let notificationTimeout = null
@@ -209,6 +210,7 @@ map.on( "load", async () => {
 
 	// Username input validation
 	usernameInput.oninput = () => {
+		hideUsernameError()
 		checkFormValid()
 	}
 
@@ -225,6 +227,21 @@ map.on( "load", async () => {
 		avatarPreview.style.display = "none"
 		filePlaceholder.textContent = "Choose your avatar"
 		confirmJoin.disabled = true
+		hideUsernameError()
+	}
+
+	// Username validation functions
+	function showUsernameError( message ) {
+		usernameError.textContent = message
+		usernameError.classList.add( "show" )
+	}
+
+	function hideUsernameError() {
+		usernameError.classList.remove( "show" )
+	}
+
+	function isUsernameAvailable( username ) {
+		return !currentUsers.has( username.trim() )
 	}
 
 	// Confirm join functionality
@@ -233,6 +250,12 @@ map.on( "load", async () => {
 		const file = avatarInput.files[ 0 ]
 
 		if ( !username || !file ) return
+
+		// Check if username is available
+		if ( !isUsernameAvailable( username ) ) {
+			showUsernameError( "Username already taken. Please choose a different one." )
+			return
+		}
 
 		navigator.geolocation.getCurrentPosition( async ( { coords } ) => {
 			const coordinates = [

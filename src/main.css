@@ -242,6 +242,17 @@ body {
 	color: #888;
 }
 
+.error-message {
+	color: #ef4444;
+	font-size: 0.8rem;
+	margin-top: 0.25rem;
+	display: none;
+}
+
+.error-message.show {
+	display: block;
+}
+
 .file-input-wrapper {
 	position: relative;
 }
