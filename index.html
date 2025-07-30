@@ -13,6 +13,37 @@
 				<button class="joinButton">Join</button>
 			</div>
 		</div>
+
+		<!-- Join Modal -->
+		<div id="joinModal" class="modal">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h2>Join Friends Map</h2>
+					<span class="close">&times;</span>
+				</div>
+				<div class="modal-body">
+					<div class="form-group">
+						<label for="usernameInput">Username</label>
+						<input type="text" id="usernameInput" placeholder="Enter your username" required>
+					</div>
+					<div class="form-group">
+						<label for="avatarInput">Avatar</label>
+						<div class="file-input-wrapper">
+							<input type="file" id="avatarInput" accept="image/*" required>
+							<div class="file-input-display">
+								<span class="file-placeholder">Choose your avatar</span>
+								<div class="avatar-preview" id="avatarPreview"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" id="cancelJoin" class="btn-secondary">Cancel</button>
+					<button type="button" id="confirmJoin" class="btn-primary" disabled>Join Map</button>
+				</div>
+			</div>
+		</div>
+
 		<script type="module" src="/src/main.js"></script>
 	</body>
 </html>

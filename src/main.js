@@ -7,6 +7,14 @@ import { io } from "socket.io-client"
 mapboxgl.accessToken = "pk.eyJ1IjoibmFqaW1vdiIsImEiOiJjbWRmazhzdG0wZHVzMmlzOGdrNHFreWV6In0.ENVcoFkxKIqNeCEax2JoFg"
 
 const joinButton = document.querySelector( ".joinButton" )
+const joinModal = document.querySelector( "#joinModal" )
+const closeModal = document.querySelector( ".close" )
+const cancelJoin = document.querySelector( "#cancelJoin" )
+const confirmJoin = document.querySelector( "#confirmJoin" )
+const usernameInput = document.querySelector( "#usernameInput" )
+const avatarInput = document.querySelector( "#avatarInput" )
+const avatarPreview = document.querySelector( "#avatarPreview" )
+const filePlaceholder = document.querySelector( ".file-placeholder" )
 
 const map = new mapboxgl.Map( {
 	container: "map",
@@ -24,8 +32,8 @@ map.on( "load", async () => {
 
 	console.clear()
 
-	const server = io( "https://friends-socket-server.onrender.com" )
-	// const server = io( "http://localhost:3000" )
+	// const server = io( "https://friends-socket-server.onrender.com" )
+	const server = io( "http://localhost:3000" )
 
 	server.on( "new_user", geoJSON => {
 
@@ -50,34 +58,90 @@ map.on( "load", async () => {
 		}
 	} )
 
+	// Modal functionality
 	joinButton.onclick = () => {
+		joinModal.style.display = "block"
+		usernameInput.focus()
+	}
 
-		const username = prompt( "Type username:" )
+	closeModal.onclick = () => {
+		joinModal.style.display = "none"
+		resetModal()
+	}
 
-		const inputElement = document.createElement( "input" )
-		inputElement.setAttribute( "type", "file" )
-		inputElement.onchange = async e => {
+	cancelJoin.onclick = () => {
+		joinModal.style.display = "none"
+		resetModal()
+	}
 
-			const file = inputElement.files[ 0 ]
-
-			navigator.geolocation.getCurrentPosition( async ( { coords } ) => {
-
-				const coordinates = [
-					coords.longitude,
-					coords.latitude,
-				]
-
-				server.emit( "new_user", {
-					username: username,
-					file: {
-						type: file.type,
-						arrayBuffer: await file.arrayBuffer(),
-					},
-					coordinates: coordinates,
-				} )
-			} )
+	// Close modal when clicking outside
+	window.onclick = ( event ) => {
+		if ( event.target === joinModal ) {
+			joinModal.style.display = "none"
+			resetModal()
 		}
-		inputElement.click()
+	}
+
+	// Avatar preview functionality
+	avatarInput.onchange = ( e ) => {
+		const file = e.target.files[ 0 ]
+		if ( file ) {
+			const reader = new FileReader()
+			reader.onload = ( e ) => {
+				avatarPreview.style.backgroundImage = `url(${ e.target.result })`
+				avatarPreview.style.display = "block"
+				filePlaceholder.textContent = file.name
+				checkFormValid()
+			}
+			reader.readAsDataURL( file )
+		}
+	}
+
+	// Username input validation
+	usernameInput.oninput = () => {
+		checkFormValid()
+	}
+
+	// Form validation
+	function checkFormValid() {
+		const isValid = usernameInput.value.trim() !== "" && avatarInput.files.length > 0
+		confirmJoin.disabled = !isValid
+	}
+
+	// Reset modal state
+	function resetModal() {
+		usernameInput.value = ""
+		avatarInput.value = ""
+		avatarPreview.style.display = "none"
+		filePlaceholder.textContent = "Choose your avatar"
+		confirmJoin.disabled = true
+	}
+
+	// Confirm join functionality
+	confirmJoin.onclick = async () => {
+		const username = usernameInput.value.trim()
+		const file = avatarInput.files[ 0 ]
+
+		if ( !username || !file ) return
+
+		navigator.geolocation.getCurrentPosition( async ( { coords } ) => {
+			const coordinates = [
+				coords.longitude + Math.random(),
+				coords.latitude + Math.random(),
+			]
+
+			server.emit( "new_user", {
+				username: username,
+				file: {
+					type: file.type,
+					arrayBuffer: await file.arrayBuffer(),
+				},
+				coordinates: coordinates,
+			} )
+
+			joinModal.style.display = "none"
+			resetModal()
+		} )
 	}
 } )
 
