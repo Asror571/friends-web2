@@ -31,12 +31,13 @@ const closeNotification = document.querySelector( "#closeNotification" )
 
 const sidebar = document.querySelector( "#sidebar" )
 const userList = document.querySelector( "#userList" )
+const emptyState = document.querySelector( "#emptyState" )
 const mapElement = document.querySelector( "#map" )
 
 const map = new mapboxgl.Map( {
 	container: "map",
 	attributionControl: false,
-	logoPosition: "bottom-right",
+	logoPosition: "bottom-left",
 	zoom: 9,
 	center: [ 69.2753, 41.3126 ],
 	hash: true,
@@ -60,12 +61,10 @@ map.on( "load", async () => {
 		const count = usersGeoJSONCollection.features.length
 
 		if ( count === 0 ) {
-			showNotification( `No users online yet. Be the first to join!` )
-			hideSidebar()
+			showEmptyState()
 		}
 		else {
-			showNotification( `${ count } users online` )
-			showSidebar()
+			hideEmptyState()
 			
 			// Add all existing users to map and sidebar
 			for ( const geoJSONFeature of usersGeoJSONCollection.features ) {
@@ -90,9 +89,9 @@ map.on( "load", async () => {
 			addUserToSidebar( geoJSON )
 			onlineUsers++
 			
-			// Show sidebar if this is the first user
+			// Hide empty state if this is the first user
 			if ( onlineUsers === 1 ) {
-				showSidebar()
+				hideEmptyState()
 			}
 		}
 		else if ( geoJSON.type === "FeatureCollection" ) {
@@ -101,6 +100,7 @@ map.on( "load", async () => {
 
 			// Clear existing user list to avoid duplicates
 			clearUserList()
+			hideEmptyState()
 
 			for ( const geoJSONFeature of geoJSON.features ) {
 				addNewUser( geoJSONFeature, map )
@@ -114,9 +114,6 @@ map.on( "load", async () => {
 				duration: 1_000,
 				essential: true,
 			} )
-
-			// Show sidebar since we have users
-			showSidebar()
 		}
 	} )
 
@@ -257,19 +254,24 @@ map.on( "load", async () => {
 		}, 300 )
 	}
 
-	// Sidebar functions
-	function showSidebar() {
-		sidebar.classList.remove( "hidden" )
-		mapElement.classList.remove( "full-width" )
+	// Empty state functions
+	function showEmptyState() {
+		emptyState.style.display = "flex"
 	}
 
-	function hideSidebar() {
-		sidebar.classList.add( "hidden" )
-		mapElement.classList.add( "full-width" )
+	function hideEmptyState() {
+		emptyState.style.display = "none"
 	}
+
+	// Add window resize listener
+	window.addEventListener( "resize", () => {
+		map.resize()
+	} )
 
 	function clearUserList() {
-		userList.innerHTML = ""
+		// Clear all user items but keep empty state
+		const userItems = userList.querySelectorAll( ".user-list-item" )
+		userItems.forEach( item => item.remove() )
 	}
 
 	function addUserToSidebar( geoJSONFeature ) {
