@@ -37,6 +37,8 @@ const emptyState = document.querySelector( "#emptyState" )
 const mapElement = document.querySelector( "#map" )
 
 let currentUserData = null // Store current user data for Show on Map
+let userMarkers = new Map() // Store user markers: userId -> {marker, geoJSONFeature}
+let currentUsers = new Map() // Store current users: userId -> geoJSONFeature
 
 const map = new mapboxgl.Map( {
 	container: "map",
@@ -59,6 +61,20 @@ map.on( "load", async () => {
 
 	let onlineUsers = 0
 	let notificationTimeout = null
+
+	server.on( "update_users", usersGeoJSONCollection => {
+		updateUsersOnMap( usersGeoJSONCollection )
+		
+		// Fit map to show all users if there are any
+		if ( usersGeoJSONCollection.features.length > 0 ) {
+			const bbox = turf.bbox( usersGeoJSONCollection )
+			map.fitBounds( bbox, {
+				padding: 200,
+				duration: 1_000,
+				essential: true,
+			} )
+		}
+	} )
 
 	server.on( "init", usersGeoJSONCollection => {
 
@@ -222,6 +238,9 @@ map.on( "load", async () => {
 			const coordinates = [
 				coords.longitude + Math.random(),
 				coords.latitude + Math.random(),
+
+				// coords.longitude,
+				// coords.latitude,
 			]
 
 			server.emit( "new_user", {
@@ -295,6 +314,52 @@ map.on( "load", async () => {
 		} )
 	}
 
+	function removeUserFromMap( userId ) {
+		if ( userMarkers.has( userId ) ) {
+			// Remove marker from map
+			userMarkers.get( userId ).marker.remove()
+			
+			// Remove from memory
+			userMarkers.delete( userId )
+			currentUsers.delete( userId )
+		}
+	}
+
+	function updateUsersOnMap( newUsersGeoJSON ) {
+		const newUserIds = new Set()
+
+		// Process new users
+		for ( const geoJSONFeature of newUsersGeoJSON.features ) {
+			const userId = geoJSONFeature.properties.username
+			newUserIds.add( userId )
+			
+			// Add or update user on map
+			addNewUser( geoJSONFeature, map )
+		}
+		
+		// Remove users that are no longer in the new list
+		for ( const userId of currentUsers.keys() ) {
+			if ( !newUserIds.has( userId ) ) {
+				removeUserFromMap( userId )
+			}
+		}
+		
+		// Update sidebar
+		clearUserList()
+		if ( newUsersGeoJSON.features.length === 0 ) {
+			showEmptyState()
+		} else {
+			hideEmptyState()
+			for ( const geoJSONFeature of newUsersGeoJSON.features ) {
+				addUserToSidebar( geoJSONFeature )
+			}
+		}
+		
+		// Update counts
+		onlineUsers = newUsersGeoJSON.features.length
+		updateSidebarTitle( onlineUsers )
+	}
+
 	// Add window resize listener
 	window.addEventListener( "resize", () => {
 		map.resize()
@@ -332,7 +397,13 @@ map.on( "load", async () => {
 
 function addNewUser( geoJSONFeature, map ) {
 
-	const { avatar } = geoJSONFeature.properties
+	const { avatar, username } = geoJSONFeature.properties
+	const userId = username // Use username as unique identifier
+
+	// If user already exists, remove old marker first
+	if ( userMarkers.has( userId ) ) {
+		userMarkers.get( userId ).marker.remove()
+	}
 
 	const blob = new Blob( [ avatar.arrayBuffer ], { type: avatar.type } )
 	const avatarURL = URL.createObjectURL( blob )
@@ -348,6 +419,10 @@ function addNewUser( geoJSONFeature, map ) {
 	const marker = new mapboxgl.Marker( el )
 	marker.setLngLat( geoJSONFeature.geometry.coordinates )
 	marker.addTo( map )
+
+	// Store in global memory
+	userMarkers.set( userId, { marker, geoJSONFeature } )
+	currentUsers.set( userId, geoJSONFeature )
 
 	// URL.revokeObjectURL( avatarURL )
 }
