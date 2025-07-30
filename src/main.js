@@ -25,6 +25,14 @@ const userInfoLocation = document.querySelector( "#userInfoLocation" )
 const userAvatarLarge = document.querySelector( "#userAvatarLarge" )
 const userInfoJoined = document.querySelector( "#userInfoJoined" )
 
+const notification = document.querySelector( "#notification" )
+const notificationText = document.querySelector( "#notificationText" )
+const closeNotification = document.querySelector( "#closeNotification" )
+
+const sidebar = document.querySelector( "#sidebar" )
+const userList = document.querySelector( "#userList" )
+const mapElement = document.querySelector( "#map" )
+
 const map = new mapboxgl.Map( {
 	container: "map",
 	attributionControl: false,
@@ -44,28 +52,76 @@ map.on( "load", async () => {
 	// const server = io( "https://friends-socket-server.onrender.com" )
 	const server = io( "http://localhost:3000" )
 
+	let onlineUsers = 0
+	let notificationTimeout = null
+
+	server.on( "init", usersGeoJSONCollection => {
+
+		const count = usersGeoJSONCollection.features.length
+
+		if ( count === 0 ) {
+			showNotification( `No users online yet. Be the first to join!` )
+			hideSidebar()
+		}
+		else {
+			showNotification( `${ count } users online` )
+			showSidebar()
+			
+			// Add all existing users to map and sidebar
+			for ( const geoJSONFeature of usersGeoJSONCollection.features ) {
+				addNewUser( geoJSONFeature, map )
+				addUserToSidebar( geoJSONFeature )
+			}
+
+			// Fit map to show all users
+			const bbox = turf.bbox( usersGeoJSONCollection )
+			map.fitBounds( bbox, {
+				padding: 200,
+				duration: 1_000,
+				essential: true,
+			} )
+		}
+	} )
+
 	server.on( "new_user", geoJSON => {
 
 		if ( geoJSON.type === "Feature" ) {
-
 			addNewUser( geoJSON, map )
+			addUserToSidebar( geoJSON )
+			onlineUsers++
+			
+			// Show sidebar if this is the first user
+			if ( onlineUsers === 1 ) {
+				showSidebar()
+			}
 		}
 		else if ( geoJSON.type === "FeatureCollection" ) {
+			// This means we just joined and server sent us all users (including ourselves)
+			onlineUsers = geoJSON.features.length
+
+			// Clear existing user list to avoid duplicates
+			clearUserList()
 
 			for ( const geoJSONFeature of geoJSON.features ) {
-
 				addNewUser( geoJSONFeature, map )
+				addUserToSidebar( geoJSONFeature )
 			}
 
 			const bbox = turf.bbox( geoJSON )
 
 			map.fitBounds( bbox, {
-				padding: 200, // pixels
-				duration: 1_000, // ms
-				essential: true, // reduces motion for accessibility
+				padding: 200,
+				duration: 1_000,
+				essential: true,
 			} )
+
+			// Show sidebar since we have users
+			showSidebar()
 		}
 	} )
+
+	// Init
+	server.emit( "init" )
 
 	// Modal functionality
 	joinButton.onclick = () => {
@@ -90,6 +146,11 @@ map.on( "load", async () => {
 
 	closeUserInfoBtn.onclick = () => {
 		userInfoModal.style.display = "none"
+	}
+
+	// Notification functionality
+	closeNotification.onclick = () => {
+		hideNotification()
 	}
 
 	// Close modal when clicking outside
@@ -163,6 +224,75 @@ map.on( "load", async () => {
 			joinModal.style.display = "none"
 			resetModal()
 		} )
+	}
+
+	// Notification functions
+	function showNotification( message ) {
+		notificationText.textContent = message
+		notification.classList.add( "show" )
+		
+		// Clear any existing timeout
+		if ( notificationTimeout ) {
+			clearTimeout( notificationTimeout )
+		}
+		
+		// Auto-hide after 5 seconds
+		notificationTimeout = setTimeout( () => {
+			hideNotification()
+		}, 5000 )
+	}
+
+	function hideNotification() {
+		notification.classList.add( "hide" )
+		
+		// Clear timeout if user manually closes
+		if ( notificationTimeout ) {
+			clearTimeout( notificationTimeout )
+			notificationTimeout = null
+		}
+		
+		// Remove classes after animation completes
+		setTimeout( () => {
+			notification.classList.remove( "show", "hide" )
+		}, 300 )
+	}
+
+	// Sidebar functions
+	function showSidebar() {
+		sidebar.classList.remove( "hidden" )
+		mapElement.classList.remove( "full-width" )
+	}
+
+	function hideSidebar() {
+		sidebar.classList.add( "hidden" )
+		mapElement.classList.add( "full-width" )
+	}
+
+	function clearUserList() {
+		userList.innerHTML = ""
+	}
+
+	function addUserToSidebar( geoJSONFeature ) {
+		const { username, avatar, joinedAt } = geoJSONFeature.properties
+
+		// Create avatar blob
+		const blob = new Blob( [ avatar.arrayBuffer ], { type: avatar.type } )
+		const avatarURL = URL.createObjectURL( blob )
+
+		// Create user list item
+		const userItem = document.createElement( "div" )
+		userItem.className = "user-list-item"
+		userItem.onclick = () => showUserInfo( geoJSONFeature )
+
+		userItem.innerHTML = `
+			<div class="user-list-avatar" style="background-image: url(${avatarURL})"></div>
+			<div class="user-list-info">
+				<div class="user-list-name">${username}</div>
+				<div class="user-list-joined">${moment( joinedAt ).fromNow()}</div>
+			</div>
+		`
+
+		userList.appendChild( userItem )
 	}
 } )
 
