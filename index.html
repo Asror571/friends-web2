@@ -9,6 +9,7 @@
 	<body>
 		<div id="app">
 			<button class="joinButton">Join</button>
+			<button class="exitButton" style="display: none;">Exit</button>
 			<div id="map"></div>
 			<div id="sidebar">
 				<div class="sidebar-header">
@@ -80,6 +81,10 @@
 					</div>
 				</div>
 				<div class="modal-footer">
+					<div class="message-sender">
+						<input type="text" id="messageInput" placeholder="Type a message...">
+						<button id="sendMessageBtn" class="btn-primary">Send</button>
+					</div>
 					<button type="button" id="showOnMapBtn" class="btn-primary">Show on Map</button>
 					<button type="button" id="closeUserInfoBtn" class="btn-secondary">Close</button>
 				</div>

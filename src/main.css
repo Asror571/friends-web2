@@ -113,6 +113,13 @@ body {
 	font-weight: 500;
 }
 
+.self-tag {
+	color: #9ca3af;
+	font-size: 0.8rem;
+	font-weight: 400;
+	margin-left: 0.25rem;
+}
+
 .user-list-joined {
 	color: #9ca3af;
 	font-size: 0.75rem;
@@ -138,6 +145,26 @@ body {
 	background-color: #4338ca;
 }
 
+.exitButton {
+	position: absolute;
+	top: 20px;
+	left: 20px;
+	z-index: 1000;
+	font-size: 1rem;
+	padding: 0.75rem 1.5rem;
+	background-color: #ef4444; /* Red color for exit */
+	color: white;
+	border: none;
+	border-radius: 0.5rem;
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+.exitButton:hover {
+	background-color: #dc2626; /* Darker red on hover */
+}
+
 .user {
 	width: 100px;
 	height: 100px;
@@ -147,6 +174,48 @@ body {
 	border: 3px solid #4f46e5;
 	cursor: pointer;
 	transition: transform 0.2s ease;
+	position: relative; /* Important for message bubble positioning */
+}
+
+.message-bubble {
+	position: absolute;
+	bottom: 105%; /* Position above the avatar */
+	left: 50%;
+	transform: translateX(-50%);
+	background-color: white;
+	color: #1a1a1a;
+	padding: 0.5rem 1rem;
+	border-radius: 0.75rem;
+	font-size: 0.9rem;
+	font-weight: 500;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+	width: max-content;
+	max-width: 200px;
+	text-align: center;
+	z-index: 10;
+	animation: fadeIn 0.3s ease-out;
+}
+
+.message-bubble::after {
+	content: '';
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border-width: 8px;
+	border-style: solid;
+	border-color: white transparent transparent transparent;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateX(-50%) translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(-50%) translateY(0);
+	}
 }
 
 .user:hover {
@@ -305,8 +374,30 @@ body {
 	padding: 1.5rem;
 	border-top: 1px solid #404040;
 	display: flex;
-	justify-content: flex-end;
+	justify-content: space-between; /* Changed */
+	align-items: center; /* Added */
 	gap: 1rem;
+}
+
+.message-sender {
+	display: flex;
+	gap: 0.5rem;
+	flex-grow: 1; /* Take available space */
+}
+
+.message-sender input {
+	flex-grow: 1;
+	padding: 0.75rem;
+	background-color: #1a1a1a;
+	border: 1px solid #404040;
+	border-radius: 0.5rem;
+	color: #ffffff;
+	font-size: 0.9rem;
+}
+
+.message-sender input:focus {
+	outline: none;
+	border-color: #4f46e5;
 }
 
 .btn-secondary {
